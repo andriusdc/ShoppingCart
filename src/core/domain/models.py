@@ -11,11 +11,26 @@ class User:
         created_at: datetime = None,
         role: str = "user",
     ) -> None:
+        if user_id <= 0:
+            raise ValueError("User ID must be greater than zero")
+        if not user_name:
+            raise ValueError("User name cannot be empty")
+        if not password:
+            raise ValueError("Password cannot be empty")
+        if created_at is not None and not isinstance(created_at, datetime):
+            raise ValueError("Created at must be a valid datetime object")
+        if role not in {"admin", "user"}:
+            raise ValueError("Role must be 'user' or 'admin'")
+
         self.user_id = user_id
         self.user_name = user_name
         self.password = password
         self.created_at = created_at or datetime.now()
         self.role = role
+
+        print("/n")
+        print(f"created_at: {created_at}")
+        print(f"role: {role}")
 
 
 class Product:

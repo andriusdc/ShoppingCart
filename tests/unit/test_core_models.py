@@ -17,7 +17,37 @@ def test_user_instantiation():
     assert user.role == "user"
 
 
-def test_product_model():
+def test_user_id_validation():
+    with pytest.raises(ValueError) as excinfo:
+        User(user_id=0, user_name="John", password="123", role="user")
+    assert str(excinfo.value) == "User ID must be greater than zero"
+
+
+def test_user_name_validation():
+    with pytest.raises(ValueError) as excinfo:
+        User(user_id=1, user_name="", password="123", role="user")
+    assert str(excinfo.value) == "User name cannot be empty"
+
+
+def test_password_validation():
+    with pytest.raises(ValueError) as excinfo:
+        User(user_id=1, user_name="John", password="", role="user")
+    assert str(excinfo.value) == "Password cannot be empty"
+
+
+def test_created_at_validation():
+    with pytest.raises(ValueError) as excinfo:
+        User(user_id=1, user_name="John", password="123", created_at="0", role="user")
+    assert str(excinfo.value) == "Created at must be a valid datetime object"
+
+
+def test_role_validation():
+    with pytest.raises(ValueError) as excinfo:
+        User(user_id=1, user_name="John", password="123", role="king")
+    assert str(excinfo.value) == "Role must be 'user' or 'admin'"
+
+
+def test_product_instantiation():
     created_at = datetime(2024, 9, 11, 0, 0, 0)
     product = Product(
         product_id=1,
@@ -34,7 +64,7 @@ def test_product_model():
     assert product.created_at == created_at
 
 
-def test_cart_model():
+def test_cart_instantiation():
     created_at = datetime(2024, 9, 11, 0, 0, 0)
     cart = Cart(cart_id=1, user_id=1, created_at=created_at)
 
@@ -43,7 +73,7 @@ def test_cart_model():
     assert cart.created_at == created_at
 
 
-def test_cart_items_model():
+def test_cart_items_instantiation():
     added_at = datetime(2024, 9, 11, 0, 0, 0)
     cartItems = CartItem(
         cart_item_id=1, cart_id=1, product_id=2, quantity=1, added_at=added_at
@@ -56,7 +86,7 @@ def test_cart_items_model():
     assert cartItems.added_at == added_at
 
 
-def test_order_model():
+def test_order_instantiation():
     created_at = datetime(2024, 9, 11, 0, 0, 0)
     order = Order(order_id=1, user_id=1, order_status=True, created_at=created_at)
 
@@ -66,7 +96,7 @@ def test_order_model():
     assert order.created_at == created_at
 
 
-def test_order_item_model():
+def test_order_item_instantiation():
     created_at = datetime(2024, 9, 11, 0, 0, 0)
     order_item = OrderItem(
         order_item_id=1,
