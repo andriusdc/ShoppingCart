@@ -1,6 +1,6 @@
 import pytest
 from datetime import datetime
-from src.core.domain.models import User,Product,Cart,CartItem
+from src.core.domain.models import User,Product,Cart,CartItem,Order,OrderItem
 
 def test_user_model():
     created_at=datetime(2024,9,11,0,0,0)
@@ -39,3 +39,23 @@ def test_cart_items_model():
     assert cartItems.product_id == 2
     assert cartItems.quantity == 1
     assert cartItems.added_at == added_at
+
+def test_order_model():
+    created_at=datetime(2024,9,11,0,0,0)
+    order=Order(order_id=1,user_id=1, order_status=True, created_at=created_at)
+
+    assert order.order_id==1
+    assert order.user_id==1
+    assert order.order_status==True
+    assert order.created_at==created_at
+
+def test_order_item_model():
+    created_at=datetime(2024,9,11,0,0,0)
+    order_item=OrderItem(order_item_id=1, order_id= 2, product_id=3, quantity= 2, price=2, created_at=created_at)
+
+    assert order_item.order_item_id == 1
+    assert order_item.order_id == 2
+    assert order_item.product_id == 3
+    assert order_item.quantity == 2
+    assert order_item.price == 2
+    assert order_item.created_at == created_at

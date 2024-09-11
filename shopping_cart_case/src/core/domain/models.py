@@ -23,9 +23,27 @@ class Cart:
         self.created_at = created_at or datetime.now()
 
 class CartItem:
-    def __init__ (self, cart_item_id: int, cart_id: int, product_id: int, quantity: int, added_at: datetime = None) -> None:
+    def __init__(self, cart_item_id: int, cart_id: int, product_id: int, quantity: int, added_at: datetime = None) -> None:
         self.cart_item_id = cart_item_id
         self.cart_id = cart_id
         self.product_id = product_id
         self.quantity = quantity
         self.added_at = added_at
+
+class Order:
+    def __init__(self, order_id: int, user_id: int, order_status: bool,created_at: datetime = None) -> None:
+        self.order_id = order_id 
+        self.user_id = user_id
+        self.order_status = order_status
+        self.created_at = created_at or datetime.now()
+        
+class OrderItem:
+    def __init__(self, order_item_id: int, order_id: int, product_id: id, quantity: int, price: int, created_at: datetime = None) -> None:
+        self.order_item_id = order_item_id
+        self.order_id = order_id
+        self.product_id = product_id
+        self.quantity = quantity
+        self.price = price 
+        self.created_at = created_at
+  
+        
