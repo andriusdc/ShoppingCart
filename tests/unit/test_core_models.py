@@ -4,7 +4,7 @@ from datetime import datetime
 from src.core.domain.models import User, Product, Cart, CartItem, Order, OrderItem
 
 
-def test_user_model():
+def test_user_instantiation():
     created_at = datetime(2024, 9, 11, 0, 0, 0)
     user = User(
         user_id=1, user_name="John", password="123", created_at=created_at, role="user"
