@@ -132,6 +132,23 @@ class OrderItem:
         price: int,
         created_at: datetime = None,
     ) -> None:
+        if order_item_id <= 0:
+            raise ValueError("Order item ID must be greater than zero")
+
+        if order_id <= 0:
+            raise ValueError("Order ID must be greater than zero")
+
+        if product_id <= 0:
+            raise ValueError("Product ID must be greater than zero")
+
+        if quantity <= 0:
+            raise ValueError("Quantity must be greater than zero")
+
+        if price <= 0:
+            raise ValueError("Price must be a positive number")
+        if created_at is not None and not isinstance(created_at, datetime):
+            raise ValueError("Created at must be a valid datetime object")
+
         self.order_item_id = order_item_id
         self.order_id = order_id
         self.product_id = product_id

@@ -235,3 +235,81 @@ def test_order_item_instantiation():
     assert order_item.quantity == 2
     assert order_item.price == 2
     assert order_item.created_at == created_at
+
+
+def test_order_item_id_validation():
+    with pytest.raises(ValueError) as excinfo:
+        OrderItem(
+            order_item_id=-1,
+            order_id=1,
+            product_id=1,
+            quantity=2,
+            price=5.0,
+            created_at=datetime.now(),
+        )
+    assert str(excinfo.value) == "Order item ID must be greater than zero"
+
+
+def test_order_id_validation():
+    with pytest.raises(ValueError) as excinfo:
+        OrderItem(
+            order_item_id=1,
+            order_id=-1,
+            product_id=1,
+            quantity=2,
+            price=5.0,
+            created_at=datetime.now(),
+        )
+    assert str(excinfo.value) == "Order ID must be greater than zero"
+
+
+def test_product_id_validation():
+    with pytest.raises(ValueError) as excinfo:
+        OrderItem(
+            order_item_id=1,
+            order_id=1,
+            product_id=-1,
+            quantity=2,
+            price=5.0,
+            created_at=datetime.now(),
+        )
+    assert str(excinfo.value) == "Product ID must be greater than zero"
+
+
+def test_quantity_validation():
+    with pytest.raises(ValueError) as excinfo:
+        OrderItem(
+            order_item_id=1,
+            order_id=1,
+            product_id=1,
+            quantity=0,
+            price=5.0,
+            created_at=datetime.now(),
+        )
+    assert str(excinfo.value) == "Quantity must be greater than zero"
+
+
+def test_price_validation():
+    with pytest.raises(ValueError) as excinfo:
+        OrderItem(
+            order_item_id=1,
+            order_id=1,
+            product_id=1,
+            quantity=2,
+            price=-5.0,
+            created_at=datetime.now(),
+        )
+    assert str(excinfo.value) == "Price must be a positive number"
+
+
+def test_order_item_created_at_validation():
+    with pytest.raises(ValueError) as excinfo:
+        OrderItem(
+            order_item_id=1,
+            order_id=1,
+            product_id=1,
+            quantity=2,
+            price=5.0,
+            created_at="invalid_date",
+        )
+    assert str(excinfo.value) == "Created at must be a valid datetime object"
