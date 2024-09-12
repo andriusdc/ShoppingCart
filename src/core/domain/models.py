@@ -81,6 +81,17 @@ class CartItem:
         quantity: int,
         added_at: datetime = None,
     ) -> None:
+        if cart_item_id <= 0:
+            raise ValueError("Cart item ID must be greater than zero")
+        if cart_id <= 0:
+            raise ValueError("Cart ID must be greater than zero")
+        if product_id <= 0:
+            raise ValueError("Product ID must be greater than zero")
+        if quantity <= 0:
+            raise ValueError("Quantity must be greater than zero")
+        if added_at and not isinstance(added_at, datetime):
+            raise ValueError("Added at must be a valid datetime object")
+
         self.cart_item_id = cart_item_id
         self.cart_id = cart_id
         self.product_id = product_id

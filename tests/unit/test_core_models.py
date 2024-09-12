@@ -152,6 +152,38 @@ def test_cart_items_instantiation():
     assert cartItems.added_at == added_at
 
 
+def test_cart_item_id_validation():
+    with pytest.raises(ValueError) as excinfo:
+        CartItem(
+            cart_item_id=-1,
+            cart_id=1,
+            product_id=1,
+            quantity=1,
+            added_at=datetime.now(),
+        )
+    assert str(excinfo.value) == "Cart item ID must be greater than zero"
+
+
+def test_cart_item_quantity_validation():
+    with pytest.raises(ValueError) as excinfo:
+        CartItem(
+            cart_item_id=1,
+            cart_id=1,
+            product_id=1,
+            quantity=-1,
+            added_at=datetime.now(),
+        )
+    assert str(excinfo.value) == "Quantity must be greater than zero"
+
+
+def test_cart_item_added_at_validation():
+    with pytest.raises(ValueError) as excinfo:
+        CartItem(
+            cart_item_id=1, cart_id=1, product_id=1, quantity=1, added_at="invalid_date"
+        )
+    assert str(excinfo.value) == "Added at must be a valid datetime object"
+
+
 def test_order_instantiation():
     created_at = datetime(2024, 9, 11, 0, 0, 0)
     order = Order(order_id=1, user_id=1, order_status=True, created_at=created_at)
