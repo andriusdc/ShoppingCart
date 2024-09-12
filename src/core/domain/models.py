@@ -48,6 +48,15 @@ class Product:
         self.price = price
         self.created_at = created_at or datetime.now()
 
+        if product_id <= 0:
+            raise ValueError("Product ID must be greater than zero")
+        if not product_name:
+            raise ValueError("Product name cannot be empty")
+        if price <= 0:
+            raise ValueError("Price must be a positive number")
+        if created_at and not isinstance(created_at, datetime):
+            raise ValueError("Created at must be a valid datetime object")
+
 
 class Cart:
     def __init__(self, cart_id: int, user_id: int, created_at: datetime = None) -> None:

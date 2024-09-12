@@ -64,6 +64,54 @@ def test_product_instantiation():
     assert product.created_at == created_at
 
 
+def test_product_id_validation():
+    with pytest.raises(ValueError) as excinfo:
+        Product(
+            product_id=0,
+            product_name="Orange",
+            description="Fruit unit",
+            price=5.0,
+            created_at=datetime.now(),
+        )
+    assert str(excinfo.value) == "Product ID must be greater than zero"
+
+
+def test_product_name_validation():
+    with pytest.raises(ValueError) as excinfo:
+        Product(
+            product_id=1,
+            product_name="",
+            description="Fruit unit",
+            price=5.0,
+            created_at=datetime.now(),
+        )
+    assert str(excinfo.value) == "Product name cannot be empty"
+
+
+def test_product_price_validation():
+    with pytest.raises(ValueError) as excinfo:
+        Product(
+            product_id=1,
+            product_name="Orange",
+            description="Fruit unit",
+            price=-5.0,
+            created_at=datetime.now(),
+        )
+    assert str(excinfo.value) == "Price must be a positive number"
+
+
+def test_product_created_at_validation():
+    with pytest.raises(ValueError) as excinfo:
+        Product(
+            product_id=1,
+            product_name="Orange",
+            description="Fruit unit",
+            price=5.0,
+            created_at="invalid_date",
+        )
+    assert str(excinfo.value) == "Created at must be a valid datetime object"
+
+
 def test_cart_instantiation():
     created_at = datetime(2024, 9, 11, 0, 0, 0)
     cart = Cart(cart_id=1, user_id=1, created_at=created_at)
