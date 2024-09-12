@@ -75,7 +75,7 @@ class Product:
         The name of the product.
     description : str
         A short description of the product.
-    price : int
+    price : float
         The price of the product per unit.
     created_at : datetime
         The timestamp when the product was added to the system.
@@ -94,7 +94,7 @@ class Product:
         product_id: int,
         product_name: str,
         description: str,
-        price: int,
+        price: float,
         created_at: datetime = None,
     ) -> None:
         self.product_id = product_id
@@ -283,7 +283,7 @@ class OrderItem:
         order_id: int,
         product_id: id,
         quantity: int,
-        price: int,
+        price: float,
         created_at: datetime = None,
     ) -> None:
         if order_item_id <= 0:
