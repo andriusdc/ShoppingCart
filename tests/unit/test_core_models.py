@@ -121,6 +121,24 @@ def test_cart_instantiation():
     assert cart.created_at == created_at
 
 
+def test_cart_id_validation():
+    with pytest.raises(ValueError) as excinfo:
+        Cart(cart_id=-1, user_id=1, created_at=datetime.now())
+    assert str(excinfo.value) == "Cart ID must be greater than zero"
+
+
+def test_cart_user_id_validation():
+    with pytest.raises(ValueError) as excinfo:
+        Cart(cart_id=1, user_id=-1, created_at=datetime.now())
+    assert str(excinfo.value) == "User ID must be greater than zero"
+
+
+def test_cart_created_at_validation():
+    with pytest.raises(ValueError) as excinfo:
+        Cart(cart_id=1, user_id=1, created_at="invalid_date")
+    assert str(excinfo.value) == "Created at must be a valid datetime object"
+
+
 def test_cart_items_instantiation():
     added_at = datetime(2024, 9, 11, 0, 0, 0)
     cartItems = CartItem(
