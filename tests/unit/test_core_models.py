@@ -525,7 +525,7 @@ def test_order_item_id_validation():
     assert str(excinfo.value) == "Order item ID must be greater than zero"
 
 
-def test_order_id_validation():
+def test_order_item_order_id_validation():
     """
     Test the validation of `order_id` in the `OrderItem` model.
 
@@ -548,7 +548,7 @@ def test_order_id_validation():
     assert str(excinfo.value) == "Order ID must be greater than zero"
 
 
-def test_product_id_validation():
+def test_order_item_product_id_validation():
     """
     Test the validation of `product_id` in the `OrderItem` model.
 
@@ -571,7 +571,7 @@ def test_product_id_validation():
     assert str(excinfo.value) == "Product ID must be greater than zero"
 
 
-def test_quantity_validation():
+def test_order_item_quantity_validation():
     """
     Test the validation of `quantity` in the `OrderItem` model.
 
@@ -594,7 +594,7 @@ def test_quantity_validation():
     assert str(excinfo.value) == "Quantity must be greater than zero"
 
 
-def test_price_validation():
+def test_order_item_price_validation():
     """
     Test the validation of `price` in the `OrderItem` model.
 
