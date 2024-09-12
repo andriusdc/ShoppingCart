@@ -56,10 +56,6 @@ class User:
         self.created_at = created_at or datetime.now()
         self.role = role
 
-        print("/n")
-        print(f"created_at: {created_at}")
-        print(f"role: {role}")
-
 
 class Product:
     """
