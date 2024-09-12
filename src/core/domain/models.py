@@ -54,7 +54,7 @@ class Product:
             raise ValueError("Product name cannot be empty")
         if price <= 0:
             raise ValueError("Price must be a positive number")
-        if created_at and not isinstance(created_at, datetime):
+        if created_at is not None and not isinstance(created_at, datetime):
             raise ValueError("Created at must be a valid datetime object")
 
 
@@ -64,7 +64,7 @@ class Cart:
             raise ValueError("Cart ID must be greater than zero")
         if user_id <= 0:
             raise ValueError("User ID must be greater than zero")
-        if created_at and not isinstance(created_at, datetime):
+        if created_at is not None and not isinstance(created_at, datetime):
             raise ValueError("Created at must be a valid datetime object")
 
         self.cart_id = cart_id
