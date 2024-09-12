@@ -107,6 +107,15 @@ class Order:
         order_status: bool,
         created_at: datetime = None,
     ) -> None:
+        if order_id <= 0:
+            raise ValueError("Order ID must be greater than zero")
+        if user_id <= 0:
+            raise ValueError("User ID must be greater than zero")
+        if order_status not in {True, False}:
+            raise ValueError("Order status must be true or false")
+        if created_at and not isinstance(created_at, datetime):
+            raise ValueError("Created at must be a valid datetime object")
+
         self.order_id = order_id
         self.user_id = user_id
         self.order_status = order_status

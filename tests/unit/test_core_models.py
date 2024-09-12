@@ -194,6 +194,30 @@ def test_order_instantiation():
     assert order.created_at == created_at
 
 
+def test_order_id_validation():
+    with pytest.raises(ValueError) as excinfo:
+        Order(order_id=-1, user_id=1, order_status=True, created_at=datetime.now())
+    assert str(excinfo.value) == "Order ID must be greater than zero"
+
+
+def test_order_user_id_validation():
+    with pytest.raises(ValueError) as excinfo:
+        Order(order_id=1, user_id=-1, order_status=True, created_at=datetime.now())
+    assert str(excinfo.value) == "User ID must be greater than zero"
+
+
+def test_order_order_status_validation():
+    with pytest.raises(ValueError) as excinfo:
+        Order(order_id=1, user_id=1, order_status="", created_at=datetime.now())
+    assert str(excinfo.value) == "Order status must be true or false"
+
+
+def test_order_created_at_validation():
+    with pytest.raises(ValueError) as excinfo:
+        Order(order_id=1, user_id=1, order_status=True, created_at="invalid_date")
+    assert str(excinfo.value) == "Created at must be a valid datetime object"
+
+
 def test_order_item_instantiation():
     created_at = datetime(2024, 9, 11, 0, 0, 0)
     order_item = OrderItem(
