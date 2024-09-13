@@ -1,14 +1,29 @@
 # -*- coding: utf-8 -*-
+from flask import Flask
+import os
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from datetime import datetime
+from sqlalchemy.orm import validates
 
 
-class User:
+app = Flask(__name__)
+
+if os.getenv("FLASK_ENV") == "testing":
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///test_databasedb"
+else:
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
+
+
+class User(db.Model):
     """
-    User model for representing a user in the system. Handles basic data and acess control.
+    User model for representing a user in the system. Handles basic data and access control.
 
     The model validates all the attributes.
 
-    Attributes:
+    Columns:
     ----------
     user_id : int
         A unique identifier for the user.
@@ -19,51 +34,40 @@ class User:
     created_at : datetime
         The timestamp when the user account was created. If not given, will be generated automatically.
     role : str
-        The role of the user, either 'admin' or 'user'. Defaults to less privilege role'user'
+        The role of the user, either 'admin' or 'user'. Defaults to less privilege role 'user'.
 
     Raises:
     ------
     ValueError:
-        If user_id is not greater than zero.
         If user_name or password is empty.
-        If created_at is not a valid datetime object.
-        If role is not 'admin' or 'user'.
-
     """
 
-    def __init__(
-        self,
-        user_id: int,
-        user_name: str,
-        password: str,
-        created_at: datetime = None,
-        role: str = "user",
-    ) -> None:
-        if user_id <= 0:
-            raise ValueError("User ID must be greater than zero")
-        if not user_name:
-            raise ValueError("User name cannot be empty")
-        if not password:
-            raise ValueError("Password cannot be empty")
-        if created_at is not None and not isinstance(created_at, datetime):
-            raise ValueError("Created at must be a valid datetime object")
-        if role not in {"admin", "user"}:
-            raise ValueError("Role must be 'user' or 'admin'")
+    __tablename__ = "users"
 
-        self.user_id = user_id
-        self.user_name = user_name
-        self.password = password
-        self.created_at = created_at or datetime.now()
-        self.role = role
+    user_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_name = db.Column(db.String, nullable=False, unique=True)
+    password = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    role = db.Column(db.String, nullable=False, default="user")
+
+    __table_args__ = (
+        db.CheckConstraint("role IN ('user', 'admin')", name="check_role"),
+    )
+
+    @validates("user_name", "password")
+    def validate_not_empty(self, key, value):
+        if not value or value.strip() == "":
+            raise ValueError(f"{key} cannot be empty")
+        return value
 
 
-class Product:
+class Product(db.Model):
     """
     Product model for representing a product available for purchase. Handles basic product data.
 
     The model validates all the attributes, apart from description.
 
-    Attributes:
+    Columns:
     ----------
     product_id : int
         A unique identifier for the product.
@@ -79,43 +83,38 @@ class Product:
     Raises:
     ------
     ValueError:
-        If product_id is not greater than zero.
-        If product_name or description is empty.
+        If product_name is empty.
         If price is not greater than zero.
-        If created_at is not a valid datetime object.
     """
 
-    def __init__(
-        self,
-        product_id: int,
-        product_name: str,
-        description: str,
-        price: float,
-        created_at: datetime = None,
-    ) -> None:
-        self.product_id = product_id
-        self.product_name = product_name
-        self.description = description
-        self.price = price
-        self.created_at = created_at or datetime.now()
+    __tablename__ = "products"
 
-        if product_id <= 0:
-            raise ValueError("Product ID must be greater than zero")
-        if not product_name:
+    product_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    product_name = db.Column(db.String, nullable=False)
+    description = db.Column(db.String)
+    price = db.Column(db.Float, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    @validates("product_name")
+    def validate_product_name(self, key, value):
+        if not value or value.strip() == "":
             raise ValueError("Product name cannot be empty")
-        if price <= 0:
-            raise ValueError("Price must be a positive number")
-        if created_at is not None and not isinstance(created_at, datetime):
-            raise ValueError("Created at must be a valid datetime object")
+        return value
+
+    @validates("price")
+    def validate_price(self, key, value):
+        if value <= 0:
+            raise ValueError("Price must be greater than zero")
+        return value
 
 
-class Cart:
+class Cart(db.Model):
     """
     Cart model for representing a shopping cart associated with a user. Handles cart-level data.
 
     The model validates all the attributes to ensure proper cart structure.
 
-    Attributes:
+    Columns:
     ----------
     cart_id : int
         A unique identifier for the cart.
@@ -127,30 +126,25 @@ class Cart:
     Raises:
     ------
     ValueError:
-        If cart_id or user_id is not greater than zero.
-        If created_at is not a valid datetime object.
+        If user_id is not greater than zero.
     """
 
-    def __init__(self, cart_id: int, user_id: int, created_at: datetime = None) -> None:
-        if cart_id <= 0:
-            raise ValueError("Cart ID must be greater than zero")
-        if user_id <= 0:
-            raise ValueError("User ID must be greater than zero")
-        if created_at is not None and not isinstance(created_at, datetime):
-            raise ValueError("Created at must be a valid datetime object")
+    __tablename__ = "carts"
 
-        self.cart_id = cart_id
-        self.user_id = user_id
-        self.created_at = created_at or datetime.now()
+    cart_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship("User", backref=db.backref("carts", lazy=True))
 
 
-class CartItem:
+class CartItem(db.Model):
     """
     CartItem model for representing individual items in a shopping cart. Handles item-level data within a cart.
 
     The model validates all the attributes to ensure valid cart item structure.
 
-    Attributes:
+    Column:
     ----------
     cart_item_id : int
         A unique identifier for the cart item.
@@ -166,44 +160,36 @@ class CartItem:
     Raises:
     ------
     ValueError:
-        If cart_item_id, cart_id, or product_id is not greater than zero.
         If quantity is not greater than zero.
-        If added_at is not a valid datetime object.
     """
 
-    def __init__(
-        self,
-        cart_item_id: int,
-        cart_id: int,
-        product_id: int,
-        quantity: int,
-        added_at: datetime = None,
-    ) -> None:
-        if cart_item_id <= 0:
-            raise ValueError("Cart item ID must be greater than zero")
-        if cart_id <= 0:
-            raise ValueError("Cart ID must be greater than zero")
-        if product_id <= 0:
-            raise ValueError("Product ID must be greater than zero")
-        if quantity <= 0:
+    __tablename__ = "cart_items"
+
+    cart_item_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    cart_id = db.Column(db.Integer, db.ForeignKey("carts.cart_id"), nullable=False)
+    product_id = db.Column(
+        db.Integer, db.ForeignKey("products.product_id"), nullable=False
+    )
+    quantity = db.Column(db.Integer, nullable=False)
+    added_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    cart = db.relationship("Cart", backref=db.backref("cart_items", lazy=True))
+    product = db.relationship("Product")
+
+    @validates("quantity")
+    def validate_quantity(self, key, value):
+        if value <= 0:
             raise ValueError("Quantity must be greater than zero")
-        if added_at and not isinstance(added_at, datetime):
-            raise ValueError("Added at must be a valid datetime object")
-
-        self.cart_item_id = cart_item_id
-        self.cart_id = cart_id
-        self.product_id = product_id
-        self.quantity = quantity
-        self.added_at = added_at
+        return value
 
 
-class Order:
+class Order(db.Model):
     """
     Order model for representing a customer's order in the system. Handles order-level data.
 
     The model validates the attributes to ensure proper order structure.
 
-    Attributes:
+    Columns:
     ----------
     order_id : int
         A unique identifier for the order.
@@ -217,40 +203,32 @@ class Order:
     Raises:
     ------
     ValueError:
-        If order_id or user_id is not greater than zero.
         If order_status is not True or False.
-        If created_at is not a valid datetime object.
     """
 
-    def __init__(
-        self,
-        order_id: int,
-        user_id: int,
-        order_status: bool,
-        created_at: datetime = None,
-    ) -> None:
-        if order_id <= 0:
-            raise ValueError("Order ID must be greater than zero")
-        if user_id <= 0:
-            raise ValueError("User ID must be greater than zero")
-        if order_status not in {True, False}:
-            raise ValueError("Order status must be true or false")
-        if created_at is not None and not isinstance(created_at, datetime):
-            raise ValueError("Created at must be a valid datetime object")
+    __tablename__ = "orders"
 
-        self.order_id = order_id
-        self.user_id = user_id
-        self.order_status = order_status
-        self.created_at = created_at or datetime.now()
+    order_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
+    order_status = db.Column(db.Boolean, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship("User", backref=db.backref("orders", lazy=True))
+
+    @validates("order_status")
+    def validate_order_status(self, key, value):
+        if not isinstance(value, bool):
+            raise ValueError("Order status must be either True or False.")
+        return value
 
 
-class OrderItem:
+class OrderItem(db.Model):
     """
     OrderItem model for representing individual items in an order. Handles item-level data within an order.
 
     The model validates all the attributes to ensure valid order item structure.
 
-    Attributes:
+    Columns:
     ----------
     order_item_id : int
         A unique identifier for the order item.
@@ -268,40 +246,25 @@ class OrderItem:
     Raises:
     ------
     ValueError:
-        If order_item_id, order_id, or product_id is not greater than zero.
         If quantity or price is not greater than zero.
-        If created_at is not a valid datetime object.
     """
 
-    def __init__(
-        self,
-        order_item_id: int,
-        order_id: int,
-        product_id: id,
-        quantity: int,
-        price: float,
-        created_at: datetime = None,
-    ) -> None:
-        if order_item_id <= 0:
-            raise ValueError("Order item ID must be greater than zero")
+    __tablename__ = "order_items"
 
-        if order_id <= 0:
-            raise ValueError("Order ID must be greater than zero")
+    order_item_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    order_id = db.Column(db.Integer, db.ForeignKey("orders.order_id"), nullable=False)
+    product_id = db.Column(
+        db.Integer, db.ForeignKey("products.product_id"), nullable=False
+    )
+    quantity = db.Column(db.Integer, nullable=False)
+    price = db.Column(db.Float, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-        if product_id <= 0:
-            raise ValueError("Product ID must be greater than zero")
+    order = db.relationship("Order", backref=db.backref("order_items", lazy=True))
+    product = db.relationship("Product")
 
-        if quantity <= 0:
-            raise ValueError("Quantity must be greater than zero")
-
-        if price <= 0:
-            raise ValueError("Price must be a positive number")
-        if created_at is not None and not isinstance(created_at, datetime):
-            raise ValueError("Created at must be a valid datetime object")
-
-        self.order_item_id = order_item_id
-        self.order_id = order_id
-        self.product_id = product_id
-        self.quantity = quantity
-        self.price = price
-        self.created_at = created_at
+    @validates("quantity", "price")
+    def validate_quantity_and_price(self, key, value):
+        if value <= 0:
+            raise ValueError(f"{key} must be greater than zero")
+        return value
