@@ -12,7 +12,6 @@ from src.core.domain.models import (
     app,
     db,
 )
-from flask_migrate import upgrade
 
 
 @pytest.fixture

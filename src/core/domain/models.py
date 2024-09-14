@@ -9,10 +9,10 @@ from sqlalchemy.orm import validates
 
 app = Flask(__name__)
 
-if os.getenv("FLASK_ENV") == "testing":
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///test_databasedb"
-else:
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
+
+#
+
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
