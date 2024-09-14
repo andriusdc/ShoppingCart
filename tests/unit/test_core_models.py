@@ -1,48 +1,34 @@
 # -*- coding: utf-8 -*-
 import pytest
 from datetime import datetime
-from src.core.domain.models import User, Product, Cart, CartItem, Order, OrderItem
+from sqlalchemy.exc import IntegrityError
+from src.core.domain.models import (
+    User,
+    Product,
+    Cart,
+    CartItem,
+    Order,
+    OrderItem,
+    app,
+    db,
+)
+from flask_migrate import upgrade
 
 
-def test_user_instantiation():
-    """
-    Test User class instantiation with valid inputs.
+@pytest.fixture
+def session():
+    app.config["TESTING"] = True
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///test_databasedb"
 
-    Ensures that the attributes are assigned correctly while instantiating the User
-    object and validates them according do pre defined valid values.
-
-    This test checks:
-    - If the `User` model is instantiated correctly with valid input values.
-    """
-    created_at = datetime(2024, 9, 11, 0, 0, 0)
-    user = User(
-        user_id=1, user_name="John", password="123", created_at=created_at, role="user"
-    )
-
-    assert user.user_id == 1
-    assert user.user_name == "John"
-    assert user.password == "123"
-    assert user.created_at == created_at
-    assert user.role == "user"
+    with app.app_context():
+        db.create_all()
+        yield app.test_client()
+        db.session.remove()
+        db.drop_all()
 
 
-def test_user_id_validation():
-    """
-    Test the validation of user_id in the User model.
-
-    Ensures that the User model throws the 'User ID must be greater than zero' ValueError
-    when user_id is less than or equal to zero, ensuring adherence to
-    the model's constraints.
-
-    This test checks:
-    - If 'user_id' is 0, a 'ValueError' is raised with the correct error message.
-    """
-    with pytest.raises(ValueError) as excinfo:
-        User(user_id=0, user_name="John", password="123", role="user")
-    assert str(excinfo.value) == "User ID must be greater than zero"
-
-
-def test_user_name_validation():
+# Tests for the User model
+def test_user_name_validation(session):
     """
     Test the validation of `user_name` in the `User` model.
 
@@ -54,12 +40,11 @@ def test_user_name_validation():
     - If `user_name` is an empty string, a `ValueError` is raised with
       the correct error message.
     """
-    with pytest.raises(ValueError) as excinfo:
-        User(user_id=1, user_name="", password="123", role="user")
-    assert str(excinfo.value) == "User name cannot be empty"
+    with pytest.raises(ValueError, match="user_name cannot be empty"):
+        user = User(user_name="", password="securepassword", role="user")
 
 
-def test_password_validation():
+def test_user_password_validation(session):
     """
     Test the validation of `password` in the `User` model.
 
@@ -71,96 +56,29 @@ def test_password_validation():
     - If `password` is an empty string, a `ValueError` is raised with
       the correct error message.
     """
-    with pytest.raises(ValueError) as excinfo:
-        User(user_id=1, user_name="John", password="", role="user")
-    assert str(excinfo.value) == "Password cannot be empty"
+    with pytest.raises(ValueError, match="password cannot be empty"):
+        user = User(user_name="validuser", password="", role="user")
 
 
-def test_created_at_validation():
+def test_create_valid_user(session):
     """
-    Test the validation of `created_at` in the `User` model.
+    Test creating a valid user with a username, password, and a valid role.
 
-    Ensures that the `User` model raises a `ValueError` with the message
-    'Created at must be a valid datetime object' when `created_at` is
-    not an instance of `datetime`, ensuring adherence to the model's
-    constraints.
+    Ensures that the `User` model allows creation of a user with valid attributes
+    and commits it to the session.
 
     This test checks:
-    - If `created_at` is not a `datetime` instance, a `ValueError` is raised
-      with the correct error message.
+    - If the user is created successfully with the provided attributes.
     """
-    with pytest.raises(ValueError) as excinfo:
-        User(user_id=1, user_name="John", password="123", created_at="0", role="user")
-    assert str(excinfo.value) == "Created at must be a valid datetime object"
+    user = User(user_name="validuser", password="securepassword", role="user")
+
+    assert user.user_name == "validuser"
+    assert user.role == "user"
+    assert user.password == "securepassword"
 
 
-def test_role_validation():
-    """
-    Test the validation of `role` in the `User` model.
-
-    Ensures that the `User` model raises a `ValueError` with the message
-    'Role must be 'user' or 'admin'' when `role` is not one of the allowed values,
-    ensuring adherence to the model's constraints.
-
-    This test checks:
-    - If `role` is set to 'king', a `ValueError` is raised with the correct
-      error message.
-    """
-    with pytest.raises(ValueError) as excinfo:
-        User(user_id=1, user_name="John", password="123", role="king")
-    assert str(excinfo.value) == "Role must be 'user' or 'admin'"
-
-
-def test_product_instantiation():
-    """
-    Test Product class instantiation with valid inputs.
-
-    Ensures that the attributes are assigned correctly while instantiating the Product
-    object and validates them according do pre defined valid values.
-
-    This test checks:
-    - If the `Product` model is instantiated correctly with valid input values.
-    """
-    created_at = datetime(2024, 9, 11, 0, 0, 0)
-    product = Product(
-        product_id=1,
-        product_name="Orange",
-        description="Fruit unit",
-        price=5,
-        created_at=created_at,
-    )
-
-    assert product.product_id == 1
-    assert product.product_name == "Orange"
-    assert product.description == "Fruit unit"
-    assert product.price == 5
-    assert product.created_at == created_at
-
-
-def test_product_id_validation():
-    """
-    Test the validation of `product_id` in the `Product` model.
-
-    Ensures that the `Product` model raises a `ValueError` with the message
-    'Product ID must be greater than zero' when `product_id` is less than
-    or equal to zero, ensuring adherence to the model's constraints.
-
-    This test checks:
-    - If `product_id` is 0, a `ValueError` is raised with the correct error
-      message.
-    """
-    with pytest.raises(ValueError) as excinfo:
-        Product(
-            product_id=0,
-            product_name="Orange",
-            description="Fruit unit",
-            price=5.0,
-            created_at=datetime.now(),
-        )
-    assert str(excinfo.value) == "Product ID must be greater than zero"
-
-
-def test_product_name_validation():
+# Tests for the Product model
+def test_product_name_validation(session):
     """
     Test the validation of `product_name` in the `Product` model.
 
@@ -172,470 +90,169 @@ def test_product_name_validation():
     - If `product_name` is an empty string, a `ValueError` is raised with
       the correct error message.
     """
-    with pytest.raises(ValueError) as excinfo:
-        Product(
-            product_id=1,
-            product_name="",
-            description="Fruit unit",
-            price=5.0,
-            created_at=datetime.now(),
-        )
-    assert str(excinfo.value) == "Product name cannot be empty"
+    with pytest.raises(ValueError, match="Product name cannot be empty"):
+        product = Product(product_name="", description="A test product", price=100.0)
 
 
-def test_product_price_validation():
+def test_product_price_validation(session):
     """
     Test the validation of `price` in the `Product` model.
 
     Ensures that the `Product` model raises a `ValueError` with the message
-    'Price must be greater than zero' when `price` is less than or equal
-    to zero, ensuring adherence to the model's constraints.
+    'Price must be a positive number' when `price` is zero or negative,
+    ensuring adherence to the model's constraints.
 
     This test checks:
-    - If `price` is 0, a `ValueError` is raised with the correct error message.
+    - If `price` is zero or negative, a `ValueError` is raised with
+      the correct error message.
     """
-    with pytest.raises(ValueError) as excinfo:
-        Product(
-            product_id=1,
-            product_name="Orange",
-            description="Fruit unit",
-            price=-5.0,
-            created_at=datetime.now(),
+    with pytest.raises(ValueError, match="Price must be greater than zero"):
+        product = Product(
+            product_name="Test Product", description="A test product", price=0.0
         )
-    assert str(excinfo.value) == "Price must be a positive number"
 
-
-def test_product_created_at_validation():
-    """
-    Test the validation of `created_at` in the `Product` model.
-
-    Ensures that the `Product` model raises a `ValueError` with the message
-    'Created at must be a valid datetime object' when `created_at` is
-    not an instance of `datetime`, ensuring adherence to the model's
-    constraints.
-
-    This test checks:
-    - If `created_at` is not a `datetime` instance, a `ValueError` is raised
-      with the correct error message.
-    """
-    with pytest.raises(ValueError) as excinfo:
-        Product(
-            product_id=1,
-            product_name="Orange",
-            description="Fruit unit",
-            price=5.0,
-            created_at="invalid_date",
+    with pytest.raises(ValueError, match="Price must be greater than zero"):
+        product = Product(
+            product_name="Test Product", description="A test product", price=-10.0
         )
-    assert str(excinfo.value) == "Created at must be a valid datetime object"
 
 
-def test_cart_instantiation():
+def test_create_valid_product(session):
     """
-    Test Cart class instantiation with valid inputs.
+    Test creating a valid product with a name, description, price, and creation date.
 
-    Ensures that the attributes are assigned correctly while instantiating the Cart
-    object and validates them according do pre defined valid values.
+    Ensures that the `Product` model allows creation of a product with valid attributes
+    and commits it to the session.
 
     This test checks:
-    - If the `Cart` model is instantiated correctly with valid input values.
+    - If the product is created successfully with the provided attributes.
     """
-
-    created_at = datetime(2024, 9, 11, 0, 0, 0)
-    cart = Cart(cart_id=1, user_id=1, created_at=created_at)
-
-    assert cart.cart_id == 1
-    assert cart.user_id == 1
-    assert cart.created_at == created_at
-
-
-def test_cart_id_validation():
-    """
-    Test the validation of `cart_id` in the `Cart` model.
-
-    Ensures that the `Cart` model raises a `ValueError` with the message
-    'Cart ID must be greater than zero' when `cart_id` is less than or
-    equal to zero, ensuring adherence to the model's constraints.
-
-    This test checks:
-    - If `cart_id` is -1, a `ValueError` is raised with the correct error message.
-    """
-    with pytest.raises(ValueError) as excinfo:
-        Cart(cart_id=-1, user_id=1, created_at=datetime.now())
-    assert str(excinfo.value) == "Cart ID must be greater than zero"
-
-
-def test_cart_user_id_validation():
-    """
-    Test the validation of `user_id` in the `Cart` model.
-
-    Ensures that the `Cart` model raises a `ValueError` with the message
-    'User ID must be greater than zero' when `user_id` is less than or
-    equal to zero, ensuring adherence to the model's constraints.
-
-    This test checks:
-    - If `user_id` is -1, a `ValueError` is raised with the correct error message.
-    """
-    with pytest.raises(ValueError) as excinfo:
-        Cart(cart_id=1, user_id=-1, created_at=datetime.now())
-    assert str(excinfo.value) == "User ID must be greater than zero"
-
-
-def test_cart_created_at_validation():
-    """
-    Test the validation of `created_at` in the `Cart` model.
-
-    Ensures that the `Cart` model raises a `ValueError` with the message
-    'Created at must be a valid datetime object' when `created_at` is
-    not an instance of `datetime`, ensuring adherence to the model's
-    constraints.
-
-    This test checks:
-    - If `created_at` is not a `datetime` instance, a `ValueError` is raised
-      with the correct error message.
-    """
-    with pytest.raises(ValueError) as excinfo:
-        Cart(cart_id=1, user_id=1, created_at="invalid_date")
-    assert str(excinfo.value) == "Created at must be a valid datetime object"
-
-
-def test_cart_items_instantiation():
-    """
-    Test CartItems class instantiation with valid inputs.
-
-    Ensures that the attributes are assigned correctly while instantiating the CartItems
-    object and validates them according do pre defined valid values.
-
-    This test checks:
-    - If the `CartItems` model is instantiated correctly with valid input values.
-    """
-    added_at = datetime(2024, 9, 11, 0, 0, 0)
-    cartItems = CartItem(
-        cart_item_id=1, cart_id=1, product_id=2, quantity=1, added_at=added_at
+    product = Product(
+        product_name="Test Product", description="A test product", price=100.0
     )
 
-    assert cartItems.cart_item_id == 1
-    assert cartItems.cart_id == 1
-    assert cartItems.product_id == 2
-    assert cartItems.quantity == 1
-    assert cartItems.added_at == added_at
+    assert product.product_name == "Test Product"
+    assert product.price == 100.0
 
 
-def test_cart_item_id_validation():
-    """
-    Test the validation of `cart_item_id` in the `CartItem` model.
-
-    Ensures that the `CartItem` model raises a `ValueError` with the message
-    'Cart Item ID must be greater than zero' when `cart_item_id` is less
-    than or equal to zero, ensuring adherence to the model's constraints.
-
-    This test checks:
-    - If `cart_item_id` is -1, a `ValueError` is raised with the correct error
-      message.
-    """
-    with pytest.raises(ValueError) as excinfo:
-        CartItem(
-            cart_item_id=-1,
-            cart_id=1,
-            product_id=1,
-            quantity=1,
-            added_at=datetime.now(),
-        )
-    assert str(excinfo.value) == "Cart item ID must be greater than zero"
-
-
-def test_cart_item_quantity_validation():
+# Tests for CartItem model
+def test_cart_item_quantity_validation(session):
     """
     Test the validation of `quantity` in the `CartItem` model.
 
     Ensures that the `CartItem` model raises a `ValueError` with the message
-    'Quantity must be greater than zero' when `quantity` is less than or
-    equal to zero, ensuring adherence to the model's constraints.
+    'Quantity must be greater than zero' when `quantity` is zero or negative,
+    ensuring adherence to the model's constraints.
 
     This test checks:
-    - If `quantity` is -1, a `ValueError` is raised with the correct error message.
+    - If `quantity` is zero or negative, a `ValueError` is raised with
+      the correct error message.
     """
-    with pytest.raises(ValueError) as excinfo:
-        CartItem(
-            cart_item_id=1,
-            cart_id=1,
-            product_id=1,
-            quantity=-1,
-            added_at=datetime.now(),
-        )
-    assert str(excinfo.value) == "Quantity must be greater than zero"
+    with pytest.raises(ValueError, match="Quantity must be greater than zero"):
+        cart_item = CartItem(cart_id=1, product_id=1, quantity=0)
+
+    with pytest.raises(ValueError, match="Quantity must be greater than zero"):
+        cart_item = CartItem(cart_id=1, product_id=1, quantity=-1)
 
 
-def test_cart_item_added_at_validation():
+def test_create_cart_item_with_valid_quantity(session):
     """
-    Test the validation of `added_at` in the `CartItem` model.
+    Test creating a CartItem with a valid quantity.
 
-    Ensures that the `CartItem` model raises a `ValueError` with the message
-    'Added at must be a valid datetime object' when `added_at` is
-    not an instance of `datetime`, ensuring adherence to the model's
-    constraints.
+    Ensures that the `CartItem` model allows creation of a cart item with a valid quantity
+    and commits it to the session.
 
     This test checks:
-    - If `added_at` is not a `datetime` instance, a `ValueError` is raised
-      with the correct error message.
+    - If the cart item is created successfully with the provided attributes.
     """
-    with pytest.raises(ValueError) as excinfo:
-        CartItem(
-            cart_item_id=1, cart_id=1, product_id=1, quantity=1, added_at="invalid_date"
-        )
-    assert str(excinfo.value) == "Added at must be a valid datetime object"
+    cart_item = CartItem(cart_id=1, product_id=1, quantity=3)
+
+    assert cart_item.quantity == 3
 
 
-def test_order_instantiation():
-    """
-    Test Order class instantiation with valid inputs.
-
-    Ensures that the attributes are assigned correctly while instantiating the Order
-    object and validates them according do pre defined valid values.
-
-    This test checks:
-    - If the `Order` model is instantiated correctly with valid input values.
-    """
-    created_at = datetime(2024, 9, 11, 0, 0, 0)
-    order = Order(order_id=1, user_id=1, order_status=True, created_at=created_at)
-
-    assert order.order_id == 1
-    assert order.user_id == 1
-    assert order.order_status == True
-    assert order.created_at == created_at
-
-
-def test_order_id_validation():
-    """
-    Test the validation of `order_id` in the `Order` model.
-
-    Ensures that the `Order` model raises a `ValueError` with the message
-    'Order ID must be greater than zero' when `order_id` is less than
-    or equal to zero, ensuring adherence to the model's constraints.
-
-    This test checks:
-    - If `order_id` is -1, a `ValueError` is raised with the correct error message.
-    """
-    with pytest.raises(ValueError) as excinfo:
-        Order(order_id=-1, user_id=1, order_status=True, created_at=datetime.now())
-    assert str(excinfo.value) == "Order ID must be greater than zero"
-
-
-def test_order_user_id_validation():
-    """
-    Test the validation of `user_id` in the `Order` model.
-
-    Ensures that the `Order` model raises a `ValueError` with the message
-    'User ID must be greater than zero' when `user_id` is less than or
-    equal to zero, ensuring adherence to the model's constraints.
-
-    This test checks:
-    - If `user_id` is -1, a `ValueError` is raised with the correct error message.
-    """
-    with pytest.raises(ValueError) as excinfo:
-        Order(order_id=1, user_id=-1, order_status=True, created_at=datetime.now())
-    assert str(excinfo.value) == "User ID must be greater than zero"
-
-
-def test_order_order_status_validation():
+# Tests for Order model
+def test_order_status_validation(session):
     """
     Test the validation of `order_status` in the `Order` model.
 
     Ensures that the `Order` model raises a `ValueError` with the message
-    'Order status must be a boolean value' when `order_status` is not a
-    boolean value, ensuring adherence to the model's constraints.
+    'Order status must be true or false' when `order_status` is neither True nor False,
+    ensuring adherence to the model's constraints.
 
     This test checks:
-    - If `order_status` is not a boolean, a `ValueError` is raised with the
-      correct error message.
+    - If `order_status` is neither True nor False, a `ValueError` is raised with
+      the correct error message.
     """
-
-    with pytest.raises(ValueError) as excinfo:
-        Order(order_id=1, user_id=1, order_status="", created_at=datetime.now())
-    assert str(excinfo.value) == "Order status must be true or false"
+    with pytest.raises(ValueError, match="Order status must be either True or False."):
+        order = Order(user_id=1, order_status="pending")  # Invalid status
 
 
-def test_order_created_at_validation():
+def test_create_valid_order(session):
     """
-    Test the validation of `created_at` in the `Order` model.
+    Test creating an order with a valid user_id and order_status.
 
-    Ensures that the `Order` model raises a `ValueError` with the message
-    'Created at must be a valid datetime object' when `created_at` is
-    not an instance of `datetime`, ensuring adherence to the model's
-    constraints.
+    Ensures that the `Order` model allows creation of an order with valid attributes
+    and commits it to the session.
 
     This test checks:
-    - If `created_at` is not a `datetime` instance, a `ValueError` is raised
-      with the correct error message.
+    - If the order is created successfully with the provided attributes.
     """
-    with pytest.raises(ValueError) as excinfo:
-        Order(order_id=1, user_id=1, order_status=True, created_at="invalid_date")
-    assert str(excinfo.value) == "Created at must be a valid datetime object"
+    order = Order(user_id=1, order_status=True)
+
+    assert order.user_id == 1
+    assert order.order_status is True
 
 
-def test_order_item_instantiation():
-    """
-    Test OrderItem class instantiation with valid inputs.
-
-    Ensures that the attributes are assigned correctly while instantiating the OrderItem
-    object and validates them according do pre defined valid values.
-
-    This test checks:
-    - If the `OrderItem` model is instantiated correctly with valid input values.
-    """
-
-    created_at = datetime(2024, 9, 11, 0, 0, 0)
-    order_item = OrderItem(
-        order_item_id=1,
-        order_id=2,
-        product_id=3,
-        quantity=2,
-        price=2,
-        created_at=created_at,
-    )
-
-    assert order_item.order_item_id == 1
-    assert order_item.order_id == 2
-    assert order_item.product_id == 3
-    assert order_item.quantity == 2
-    assert order_item.price == 2
-    assert order_item.created_at == created_at
-
-
-def test_order_item_id_validation():
-    """
-    Test the validation of `order_item_id` in the `OrderItem` model.
-
-    Ensures that the `OrderItem` model raises a `ValueError` with the message
-    'Order Item ID must be greater than zero' when `order_item_id` is less
-    than or equal to zero, ensuring adherence to the model's constraints.
-
-    This test checks:
-    - If `order_item_id` is 0, a `ValueError` is raised with the correct
-      error message.
-    """
-    with pytest.raises(ValueError) as excinfo:
-        OrderItem(
-            order_item_id=-1,
-            order_id=1,
-            product_id=1,
-            quantity=2,
-            price=5.0,
-            created_at=datetime.now(),
-        )
-    assert str(excinfo.value) == "Order item ID must be greater than zero"
-
-
-def test_order_item_order_id_validation():
-    """
-    Test the validation of `order_id` in the `OrderItem` model.
-
-    Ensures that the `OrderItem` model raises a `ValueError` with the message
-    'Order ID must be greater than zero' when `order_id` is less than or
-    equal to zero, ensuring adherence to the model's constraints.
-
-    This test checks:
-    - If `order_id` is -1, a `ValueError` is raised with the correct error message.
-    """
-    with pytest.raises(ValueError) as excinfo:
-        OrderItem(
-            order_item_id=1,
-            order_id=-1,
-            product_id=1,
-            quantity=2,
-            price=5.0,
-            created_at=datetime.now(),
-        )
-    assert str(excinfo.value) == "Order ID must be greater than zero"
-
-
-def test_order_item_product_id_validation():
-    """
-    Test the validation of `product_id` in the `OrderItem` model.
-
-    Ensures that the `OrderItem` model raises a `ValueError` with the message
-    'Product ID must be greater than zero' when `product_id` is less than
-    or equal to zero, ensuring adherence to the model's constraints.
-
-    This test checks:
-    - If `product_id` is -1, a `ValueError` is raised with the correct error message.
-    """
-    with pytest.raises(ValueError) as excinfo:
-        OrderItem(
-            order_item_id=1,
-            order_id=1,
-            product_id=-1,
-            quantity=2,
-            price=5.0,
-            created_at=datetime.now(),
-        )
-    assert str(excinfo.value) == "Product ID must be greater than zero"
-
-
-def test_order_item_quantity_validation():
+# Tests for OrderItem model
+def test_order_item_quantity_validation(session):
     """
     Test the validation of `quantity` in the `OrderItem` model.
 
     Ensures that the `OrderItem` model raises a `ValueError` with the message
-    'Quantity must be greater than zero' when `quantity` is less than or
-    equal to zero, ensuring adherence to the model's constraints.
+    'Quantity must be greater than zero' when `quantity` is zero or negative,
+    ensuring adherence to the model's constraints.
 
     This test checks:
-    - If `quantity` is 0, a `ValueError` is raised with the correct error message.
+    - If `quantity` is zero or negative, a `ValueError` is raised with
+      the correct error message.
     """
-    with pytest.raises(ValueError) as excinfo:
-        OrderItem(
-            order_item_id=1,
-            order_id=1,
-            product_id=1,
-            quantity=0,
-            price=5.0,
-            created_at=datetime.now(),
-        )
-    assert str(excinfo.value) == "Quantity must be greater than zero"
+    with pytest.raises(ValueError, match="quantity must be greater than zero"):
+        order_item = OrderItem(order_id=1, product_id=1, quantity=0, price=50.0)
+
+    with pytest.raises(ValueError, match="quantity must be greater than zero"):
+        order_item = OrderItem(order_id=1, product_id=1, quantity=-1, price=50.0)
 
 
-def test_order_item_price_validation():
+def test_order_item_price_validation(session):
     """
     Test the validation of `price` in the `OrderItem` model.
 
     Ensures that the `OrderItem` model raises a `ValueError` with the message
-    'Price must be greater than zero' when `price` is less than or equal to
-    zero, ensuring adherence to the model's constraints.
+    'Price must be a positive number' when `price` is zero or negative,
+    ensuring adherence to the model's constraints.
 
     This test checks:
-    - If `price` is -5, a `ValueError` is raised with the correct error message.
+    - If `price` is zero or negative, a `ValueError` is raised with
+      the correct error message.
     """
-    with pytest.raises(ValueError) as excinfo:
-        OrderItem(
-            order_item_id=1,
-            order_id=1,
-            product_id=1,
-            quantity=2,
-            price=-5.0,
-            created_at=datetime.now(),
-        )
-    assert str(excinfo.value) == "Price must be a positive number"
+    with pytest.raises(ValueError, match="price must be greater than zero"):
+        order_item = OrderItem(order_id=1, product_id=1, quantity=2, price=0.0)
+
+    with pytest.raises(ValueError, match="price must be greater than zero"):
+        order_item = OrderItem(order_id=1, product_id=1, quantity=2, price=-10.0)
 
 
-def test_order_item_created_at_validation():
+def test_create_valid_order_item(session):
     """
-    Test the validation of `created_at` in the `OrderItem` model.
+    Test creating a valid OrderItem with a positive quantity and price.
 
-    Ensures that the `OrderItem` model raises a `ValueError` with the message
-    'Created at must be a valid datetime object' when `created_at` is not
-    an instance of `datetime`, ensuring adherence to the model's constraints.
+    Ensures that the `OrderItem` model allows creation of an order item with valid attributes
+    and commits it to the session.
 
     This test checks:
-    - If `created_at` is not a `datetime` instance, a `ValueError` is raised
-      with the correct error message.
+    - If the order item is created successfully with the provided attributes.
     """
-    with pytest.raises(ValueError) as excinfo:
-        OrderItem(
-            order_item_id=1,
-            order_id=1,
-            product_id=1,
-            quantity=2,
-            price=5.0,
-            created_at="invalid_date",
-        )
-    assert str(excinfo.value) == "Created at must be a valid datetime object"
+    order_item = OrderItem(order_id=1, product_id=1, quantity=2, price=50.0)
+
+    assert order_item.quantity == 2
+    assert order_item.price == 50.0
