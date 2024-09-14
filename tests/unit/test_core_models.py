@@ -18,7 +18,7 @@ from flask_migrate import upgrade
 @pytest.fixture
 def session():
     app.config["TESTING"] = True
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///test_flights.db"
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///test_databasedb"
 
     with app.app_context():
         db.create_all()
