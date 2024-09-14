@@ -1,13 +1,21 @@
 # -*- coding: utf-8 -*-
 import pytest
-
 from src.core.domain.models import db, User, app
 from src.core.application.password_service import PasswordService
-from src.adapters.adapters import UserAdapter
+from src.adapters.user_adapter import UserAdapter
 
 
 @pytest.fixture
 def test_client():
+    """
+    Fixture for setting up a test client with an in-memory SQLite database.
+
+    Configures the Flask app for testing and sets up an in-memory SQLite database.
+    Provides a test client to be used in tests and ensures the database is cleaned up
+    after each test.
+
+    :return: Flask test client.
+    """
     app.config["TESTING"] = True
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
 
@@ -20,15 +28,37 @@ def test_client():
 
 @pytest.fixture
 def password_service():
+    """
+    Fixture for providing an instance of PasswordService.
+
+    :return: PasswordService instance.
+    """
     return PasswordService()
 
 
 @pytest.fixture
 def user_adapter(password_service):
+    """
+    Fixture for providing an instance of UserAdapter with PasswordService.
+
+    :param password_service: Instance of PasswordService.
+    :return: UserAdapter instance.
+    """
     return UserAdapter(password_service=password_service)
 
 
 def test_create_account_success(test_client, user_adapter):
+    """
+    Test the creation of a user account with valid data.
+
+    Ensures that a new user account can be created successfully. Verifies that the user
+    is created in the database with the correct attributes and that the password is hashed.
+
+    This test checks:
+    - If the user is created successfully and retrieved from the database.
+    - If the user name and created_at attributes are correctly set.
+    - If the password is hashed and matches the provided password when checked.
+    """
     user = User(user_name="test_user", password="secure_password")
     user_adapter.create_account(user)
 
@@ -50,16 +80,33 @@ def test_create_account_success(test_client, user_adapter):
 
 
 def test_create_account_existing_user_name(test_client, user_adapter):
+    """
+    Test account creation with a duplicate user name.
+
+    Ensures that attempting to create a user account with an existing user name raises
+    an exception due to the uniqueness constraint on the user name.
+
+    This test checks:
+    - If an exception is raised when trying to create a duplicate user.
+    """
     user = User(user_name="test_user", password="secure_password")
     user_adapter.create_account(user)
 
-    # Trying to create a user with the same username should fail
     duplicate_user = User(user_name="test_user", password="another_password")
     with pytest.raises(Exception):
         user_adapter.create_account(duplicate_user)
 
 
 def test_login_account_success(test_client, user_adapter):
+    """
+    Test successful user login.
+
+    Ensures that a user can successfully log in with valid credentials. Verifies that
+    the login attempt returns True when the correct username and password are provided.
+
+    This test checks:
+    - If the login attempt is successful with the correct username and password.
+    """
     user = User(user_name="test_user", password="secure_password")
     user_adapter.create_account(user)
 
@@ -69,6 +116,15 @@ def test_login_account_success(test_client, user_adapter):
 
 
 def test_login_account_failure(test_client, user_adapter):
+    """
+    Test failed user login due to incorrect password.
+
+    Ensures that a login attempt fails when an incorrect password is provided for a
+    valid username. Verifies that the login attempt returns False.
+
+    This test checks:
+    - If the login attempt returns False with an incorrect password.
+    """
     user = User(user_name="test_user", password="secure_password")
     user_adapter.create_account(user)
 
@@ -78,6 +134,16 @@ def test_login_account_failure(test_client, user_adapter):
 
 
 def test_get_user(test_client, user_adapter):
+    """
+    Test retrieval of an existing user by ID.
+
+    Ensures that a user can be retrieved successfully by their ID. Verifies that the
+    retrieved user has the correct attributes and that the password is hashed.
+
+    This test checks:
+    - If the user is retrieved successfully by their ID.
+    - If the user attributes, including hashed password, are correctly set.
+    """
     user = User(user_name="test_user", password="secure_password")
     user_adapter.create_account(user)
 
@@ -93,6 +159,15 @@ def test_get_user(test_client, user_adapter):
 
 
 def test_get_non_existent_user(test_client, user_adapter):
+    """
+    Test retrieval of a non-existent user by ID.
+
+    Ensures that retrieving a user by an ID that does not exist returns None,
+    confirming that no such user is present in the database.
+
+    This test checks:
+    - If fetching a user by a non-existent ID returns None.
+    """
     non_existent_user_id = 9999
     fetched_user = user_adapter.get_user(non_existent_user_id)
 
@@ -100,6 +175,16 @@ def test_get_non_existent_user(test_client, user_adapter):
 
 
 def test_update_user_name(test_client, user_adapter):
+    """
+    Test updating the username of an existing user.
+
+    Ensures that the username of an existing user can be updated successfully. Verifies
+    that the new username is saved in the database and that the password remains hashed.
+
+    This test checks:
+    - If the username is updated correctly in the database.
+    - If the password remains hashed and unchanged.
+    """
     user = User(user_name="test_user", password="secure_password")
     user_adapter.create_account(user)
 
@@ -118,6 +203,16 @@ def test_update_user_name(test_client, user_adapter):
 
 
 def test_update_user_password(test_client, user_adapter):
+    """
+    Test updating the password of an existing user.
+
+    Ensures that the password of an existing user can be updated successfully. Verifies
+    that the new password is hashed and saved in the database correctly.
+
+    This test checks:
+    - If the password is updated and hashed correctly in the database.
+    - If the new password is correctly validated.
+    """
     user = User(user_name="test_user", password="secure_password")
     user_adapter.create_account(user)
 
