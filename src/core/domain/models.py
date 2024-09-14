@@ -90,7 +90,7 @@ class Product(db.Model):
     __tablename__ = "products"
 
     product_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    product_name = db.Column(db.String, nullable=False)
+    product_name = db.Column(db.String, nullable=False, unique=True)
     description = db.Column(db.String)
     price = db.Column(db.Float, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
