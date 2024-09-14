@@ -5,7 +5,7 @@ from src.core.ports.product_port import ProductPort
 
 
 class ProductAdapter(ProductPort):
-    def create_product(self, product: Product) -> None:
+    def _product(self, product: Product) -> None:
         """
         Add a new product to the database.
 
