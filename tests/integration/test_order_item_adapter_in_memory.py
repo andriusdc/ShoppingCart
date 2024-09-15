@@ -126,7 +126,7 @@ def test_list_order_items_success(test_client, order_item_adapter):
     order_item_adapter.add_order_item(order_item1)
     order_item_adapter.add_order_item(order_item2)
 
-    order_items = order_item_adapter.list_order_items()
+    order_items = order_item_adapter.list_order_items(order_id=1)
     assert len(order_items) == 2
     assert any(item.product_id == 1 for item in order_items)
     assert any(item.product_id == 2 for item in order_items)

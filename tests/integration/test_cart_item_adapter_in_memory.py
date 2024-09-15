@@ -164,7 +164,7 @@ def test_list_cart_items_success(test_client, cart_item_adapter):
     cart_item_adapter.add_cart_item(cart_item1)
     cart_item_adapter.add_cart_item(cart_item2)
 
-    cart_items = cart_item_adapter.list_cart_items()
+    cart_items = cart_item_adapter.list_cart_items(cart_id=1)
     assert len(cart_items) == 2
     assert any(item.product_id == 1 for item in cart_items)
     assert any(item.product_id == 2 for item in cart_items)
