@@ -82,14 +82,20 @@ class CartItemAdapter(CartItemPort):
             db.session.rollback()
             raise Exception(f"Failed to delete cart item: {e}")
 
-    def list_cart_items(self) -> List[CartItem]:
+    def list_cart_items(self, cart_id: int) -> List[CartItem]:
         """
-        List all cart items in the database.
+        List all cart items in the database for a specific cart_id.
 
-        :return: List of CartItem instances.
+        :param cart_id: ID of the cart to list items from.
+        :return: List of CartItem instances associated with the specified cart.
         :raises Exception: If listing cart items fails.
         """
         try:
-            return db.session.execute(db.select(CartItem)).scalars().all()
+            # Fetch all cart items for the given cart_id
+            return (
+                db.session.execute(db.select(CartItem).filter_by(cart_id=cart_id))
+                .scalars()
+                .all()
+            )
         except Exception as e:
             raise Exception(f"Failed to list cart items: {e}")

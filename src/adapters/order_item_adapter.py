@@ -81,14 +81,20 @@ class OrderItemAdapter(OrderItemPort):
             db.session.rollback()
             raise Exception(f"Failed to delete order item: {e}")
 
-    def list_order_items(self) -> List[OrderItem]:
+    def list_order_items(self, order_id: int) -> List[OrderItem]:
         """
-        List all order items in the database.
+        List all order items in the database for a specific order_id.
 
-        :return: List of OrderItem instances.
+        :param order_id: ID of the order to list items from.
+        :return: List of OrderItem instances associated with the specified order.
         :raises Exception: If the operation fails.
         """
         try:
-            return db.session.execute(db.select(OrderItem)).scalars().all()
+            # Fetch all order items for the given order_id
+            return (
+                db.session.execute(db.select(OrderItem).filter_by(order_id=order_id))
+                .scalars()
+                .all()
+            )
         except Exception as e:
             raise Exception(f"Failed to list order items: {e}")
