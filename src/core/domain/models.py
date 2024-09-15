@@ -9,10 +9,10 @@ from sqlalchemy.orm import validates
 
 app = Flask(__name__)
 
-if os.getenv("FLASK_ENV") == "testing":
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///test_databasedb"
-else:
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
+
+#
+
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
@@ -90,7 +90,7 @@ class Product(db.Model):
     __tablename__ = "products"
 
     product_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    product_name = db.Column(db.String, nullable=False)
+    product_name = db.Column(db.String, nullable=False, unique=True)
     description = db.Column(db.String)
     price = db.Column(db.Float, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -132,7 +132,9 @@ class Cart(db.Model):
     __tablename__ = "carts"
 
     cart_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("users.user_id"), unique=True, nullable=False
+    )
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     user = db.relationship("User", backref=db.backref("carts", lazy=True))
@@ -168,7 +170,7 @@ class CartItem(db.Model):
     cart_item_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     cart_id = db.Column(db.Integer, db.ForeignKey("carts.cart_id"), nullable=False)
     product_id = db.Column(
-        db.Integer, db.ForeignKey("products.product_id"), nullable=False
+        db.Integer, db.ForeignKey("products.product_id"), unique=True, nullable=False
     )
     quantity = db.Column(db.Integer, nullable=False)
     added_at = db.Column(db.DateTime, default=datetime.utcnow)
