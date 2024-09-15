@@ -170,7 +170,7 @@ class CartItem(db.Model):
     cart_item_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     cart_id = db.Column(db.Integer, db.ForeignKey("carts.cart_id"), nullable=False)
     product_id = db.Column(
-        db.Integer, db.ForeignKey("products.product_id"), nullable=False
+        db.Integer, db.ForeignKey("products.product_id"), unique=True, nullable=False
     )
     quantity = db.Column(db.Integer, nullable=False)
     added_at = db.Column(db.DateTime, default=datetime.utcnow)
