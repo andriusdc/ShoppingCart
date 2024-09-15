@@ -63,7 +63,7 @@ def order_item_adapter():
 
 
 # User Endpoints Tests
-def test_add_user_success(test_client, user_adapter):
+def test_add_user_success(test_client):
     response = test_client.post(
         "/users",
         json={"user_name": "john_doe", "password": "securepassword", "role": "user"},
@@ -72,7 +72,7 @@ def test_add_user_success(test_client, user_adapter):
     assert response.json == {"message": "User added successfully"}
 
 
-def test_get_user_success(test_client, user_adapter):
+def test_get_user_success(test_client):
     test_client.post(
         "/users",
         json={"user_name": "john_doe", "password": "securepassword", "role": "user"},
@@ -96,13 +96,13 @@ def test_get_user_not_found(test_client):
 
 
 # Product Endpoints Tests
-def test_add_product_success(test_client, product_adapter):
+def test_add_product_success(test_client):
     response = test_client.post("/products", json={"name": "Product1", "price": 10.0})
     assert response.status_code == 201
     assert response.json == {"message": "Product added successfully"}
 
 
-def test_get_product_success(test_client, product_adapter):
+def test_get_product_success(test_client):
     test_client.post("/products", json={"name": "Product1", "price": 10.0})
     response = test_client.get("/products/1")
     assert response.status_code == 200
@@ -122,7 +122,7 @@ def test_get_product_not_found(test_client):
 
 
 # Cart Endpoints Tests
-def test_create_cart_success(test_client, cart_adapter):
+def test_create_cart_success(test_client):
     test_client.post(
         "/users",
         json={"user_name": "john_doe", "password": "securepassword", "role": "user"},
@@ -132,7 +132,7 @@ def test_create_cart_success(test_client, cart_adapter):
     assert response.json == {"message": "Cart created successfully"}
 
 
-def test_get_cart_success(test_client, cart_adapter):
+def test_get_cart_success(test_client):
     test_client.post(
         "/users",
         json={"user_name": "john_doe", "password": "securepassword", "role": "user"},
@@ -156,14 +156,14 @@ def test_get_cart_not_found(test_client):
 
 
 # Cart Item Endpoints Tests
-def test_add_cart_item_success(test_client, cart_item_adapter):
+def test_add_cart_item_success(test_client):
     test_client.post("/products", json={"name": "Product1", "price": 5})
     response = test_client.post("/carts/1/items", json={"product_id": 1, "quantity": 2})
     assert response.status_code == 201
     assert response.json == {"message": "Item added to cart successfully"}
 
 
-def test_list_cart_items_success(test_client, cart_item_adapter):
+def test_list_cart_items_success(test_client):
     test_client.post("/products", json={"name": "Product1", "price": 5})
     test_client.post("/carts/1/items", json={"product_id": 1, "quantity": 2})
     response = test_client.get("/carts/1/items")
@@ -177,7 +177,7 @@ def test_add_cart_item_missing_product_id(test_client):
     assert response.json["error"] == "Product ID is required"
 
 
-def test_remove_cart_item_success(test_client, cart_item_adapter):
+def test_remove_cart_item_success(test_client):
     test_client.post("/products", json={"name": "Product1", "price": 5})
     test_client.post("/carts/1/items", json={"product_id": 1, "quantity": 2})
     response = test_client.delete("/cart_items/1")
@@ -186,7 +186,7 @@ def test_remove_cart_item_success(test_client, cart_item_adapter):
 
 
 # Order Endpoints Tests
-def test_create_order_success(test_client, order_adapter):
+def test_create_order_success(test_client):
     test_client.post(
         "/users",
         json={"user_name": "john_doe", "password": "securepassword", "role": "user"},
@@ -196,7 +196,7 @@ def test_create_order_success(test_client, order_adapter):
     assert response.json == {"message": "Order created successfully"}
 
 
-def test_get_order_success(test_client, order_adapter):
+def test_get_order_success(test_client):
     test_client.post(
         "/users",
         json={"user_name": "john_doe", "password": "securepassword", "role": "user"},
@@ -220,7 +220,7 @@ def test_get_order_not_found(test_client):
 
 
 # Order Item Endpoints Tests
-def test_add_order_item_success(test_client, order_item_adapter):
+def test_add_order_item_success(test_client):
     product_price = 5
     test_client.post("/products", json={"name": "Product1", "price": product_price})
     response = test_client.post(
@@ -230,7 +230,7 @@ def test_add_order_item_success(test_client, order_item_adapter):
     assert response.json == {"message": "Item added to order successfully"}
 
 
-def test_list_order_items_success(test_client, order_item_adapter):
+def test_list_order_items_success(test_client):
     product_price = 5
     test_client.post("/products", json={"name": "Product1", "price": product_price})
     test_client.post(
