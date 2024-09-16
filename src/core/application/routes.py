@@ -9,6 +9,7 @@ from src.adapters.cart_item_adapter import CartItemAdapter
 from src.adapters.order_adapter import OrderAdapter
 from src.adapters.order_item_adapter import OrderItemAdapter
 from src.core.application.password_service import PasswordService
+from src.core.application.order_service import OrderService
 from src.core.domain.models import (
     app,
     db,
@@ -80,6 +81,14 @@ cart_adapter = CartAdapter()
 cart_item_adapter = CartItemAdapter()
 order_adapter = OrderAdapter()
 order_item_adapter = OrderItemAdapter()
+order_service = OrderService(
+    user_adapter,
+    product_adapter,
+    cart_adapter,
+    cart_item_adapter,
+    order_adapter,
+    order_item_adapter,
+)
 
 
 # User Endpoints
@@ -270,6 +279,28 @@ def list_order_items(order_id):
         )
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route("/orders/finish", methods=["POST"])
+def place_order():
+    try:
+        data = request.get_json()
+        user_id = data.get("user_id")
+        if not user_id:
+            raise BadRequest("User ID is required")
+
+        order_id = order_service.place_order(user_id=user_id)
+        return (
+            jsonify({"message": "Order placed successfully", "order_id": order_id}),
+            201,
+        )
+
+    except ValueError as e:
+        print(str(e))
+        return jsonify({"error": str(e)}), 400
+    except BadRequest as e:
+        print(str(e))
+        return jsonify({"error": str(e.description)}), 400
 
 
 if __name__ == "__main__":

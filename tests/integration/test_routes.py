@@ -2,64 +2,8 @@
 import pytest
 from werkzeug.exceptions import BadRequest
 from flask_sqlalchemy import SQLAlchemy
-from src.adapters.user_adapter import UserAdapter
-from src.adapters.product_adapter import ProductAdapter
-from src.adapters.cart_adapter import CartAdapter
-from src.adapters.cart_item_adapter import CartItemAdapter
-from src.adapters.order_adapter import OrderAdapter
-from src.adapters.order_item_adapter import OrderItemAdapter
 from src.core.application.routes import app, db
-
-
-@pytest.fixture
-def test_client():
-    """
-    Fixture for setting up a test client with an in-memory SQLite database.
-
-    Configures the Flask app for testing and sets up an in-memory SQLite database.
-    Provides a test client to be used in tests and ensures the database is cleaned up
-    after each test.
-
-    :return: Flask test client.
-    """
-    app.config["TESTING"] = True
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
-
-    with app.app_context():
-        db.create_all()
-        yield app.test_client()
-        db.session.remove()
-        db.drop_all()
-
-
-@pytest.fixture
-def user_adapter(password_service):
-    return UserAdapter(password_service=password_service)
-
-
-@pytest.fixture
-def product_adapter():
-    return ProductAdapter()
-
-
-@pytest.fixture
-def cart_adapter():
-    return CartAdapter()
-
-
-@pytest.fixture
-def cart_item_adapter():
-    return CartItemAdapter()
-
-
-@pytest.fixture
-def order_adapter():
-    return OrderAdapter()
-
-
-@pytest.fixture
-def order_item_adapter():
-    return OrderItemAdapter()
+from src.core.application.order_service import OrderService
 
 
 # User Endpoints Tests
@@ -246,3 +190,52 @@ def test_add_order_item_missing_product_id(test_client):
     response = test_client.post("/orders/1/items", json={"quantity": 2})
     assert response.status_code == 400
     assert response.json["error"] == "Product ID is required"
+
+
+# OrderService Endpoint Tests
+
+
+def test_place_order_success(test_client):
+    test_client.post(
+        "/users",
+        json={"user_name": "john_doe", "password": "securepassword", "role": "user"},
+    )
+    test_client.post("/products", json={"name": "Product1", "price": 5})
+    test_client.post("/carts", json={"user_id": 1})
+    test_client.post("/carts/1/items", json={"product_id": 1, "quantity": 2})
+    # Place the order
+    response = test_client.post("/orders/finish", json={"user_id": 1})
+
+    # Assert successful order placement
+    assert response.status_code == 201
+    data = response.get_json()
+    assert data["message"] == "Order placed successfully"
+    assert "order_id" in data
+
+
+def test_place_order_missing_user_id(test_client):
+    test_client.post(
+        "/users",
+        json={"user_name": "john_doe", "password": "securepassword", "role": "user"},
+    )
+    test_client.post("/products", json={"name": "Product1", "price": 5})
+    test_client.post("/carts", json={"user_id": 1})
+    test_client.post("/carts/1/items", json={"product_id": 1, "quantity": 2})
+    # Missing user_id in request
+    response = test_client.post("/orders/finish", json={})
+
+    # Assert 400 error for missing user ID
+    assert response.status_code == 400
+    data = response.get_json()
+    assert data["error"] == "User ID is required"
+
+
+def test_place_order_invalid_user_id(test_client):
+    # Invalid user_id that does not exist
+
+    response = test_client.post("/orders/finish", json={"user_id": 999})
+
+    # Assert 400 error for invalid user ID
+    assert response.status_code == 400
+    data = response.get_json()
+    assert data["error"] == "User with ID not found"
