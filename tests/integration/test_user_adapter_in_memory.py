@@ -75,12 +75,13 @@ def test_login_account_success(test_client, user_adapter):
     This test checks:
     - If the login attempt is successful with the correct username and password.
     """
-    user = User(user_name="test_user", password="secure_password")
+    user_name = "test_user"
+    password = "secure_password"
+    user = User(user_name=user_name, password=password)
     user_adapter.create_account(user)
 
-    login_user = User(user_name="test_user", password="secure_password")
-    result = user_adapter.login_account(login_user)
-    assert result is True
+    result = user_adapter.login_account(user_name, password)
+    assert result.user_name == user_name
 
 
 def test_login_account_failure(test_client, user_adapter):
@@ -93,12 +94,15 @@ def test_login_account_failure(test_client, user_adapter):
     This test checks:
     - If the login attempt returns False with an incorrect password.
     """
-    user = User(user_name="test_user", password="secure_password")
+    user_name = "test_user"
+    password = "secure_password"
+    user = User(user_name=user_name, password=password)
     user_adapter.create_account(user)
 
-    wrong_password_user = User(user_name="test_user", password="wrong_password")
-    result = user_adapter.login_account(wrong_password_user)
-    assert result is False
+    wrong_password = "wrong_password"
+
+    with pytest.raises(Exception):
+        user_adapter.login_account(user_name, wrong_password)
 
 
 def test_get_user(test_client, user_adapter):
