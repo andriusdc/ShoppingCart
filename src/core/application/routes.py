@@ -39,13 +39,10 @@ jwt = JWTManager(app)
 def role_required(required_role):
     def decorator(f):
         @wraps(f)
-        @jwt_required()  # Ensure the user is authenticated
+        @jwt_required()
         def wrapper(*args, **kwargs):
-            # Get the identity of the current user from the JWT token
             current_user = get_jwt_identity()
-            user_role = current_user.get(
-                "role"
-            )  # Adjust based on how you store roles in the token
+            user_role = current_user.get("role")
 
             if user_role != required_role:
                 return (
@@ -194,7 +191,7 @@ def get_user(user_id):
 
 # Product Endpoints
 @app.route("/products", methods=["POST"])
-# @role_required('admin')
+@role_required("admin")
 def create_product():
     try:
         data = request.get_json()
@@ -218,7 +215,48 @@ def get_product(product_id):
         return jsonify({"error": str(e.description)}), 400
 
 
-##TODO remove and update product
+@app.route("/products/<int:product_id>", methods=["PUT"])
+@role_required("admin")
+def update_product(product_id):
+    try:
+        data = request.get_json()
+        name = validate_name(data)
+        price = validate_price(data)
+
+        # Fetch the existing product
+        product = product_adapter.get_product(product_id=product_id)
+        if not product:
+            raise BadRequest(f"Product with ID {product_id} not found")
+
+        # Update product details
+        product.product_name = name
+        product.price = price
+        product_adapter.update_product(product=product)
+
+        return jsonify({"message": "Product updated successfully"}), 200
+    except BadRequest as e:
+        return jsonify({"error": str(e.description)}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/products/<int:product_id>", methods=["DELETE"])
+@role_required("admin")
+def delete_product(product_id):
+    try:
+        # Fetch the existing product
+        product = product_adapter.get_product(product_id=product_id)
+        if not product:
+            raise BadRequest(f"Product with ID {product_id} not found")
+
+        # Delete the product
+        product_adapter.delete_product(product_id=product_id)
+
+        return jsonify({"message": "Product deleted successfully"}), 200
+    except BadRequest as e:
+        return jsonify({"error": str(e.description)}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 # Cart Endpoints
@@ -390,14 +428,19 @@ def place_order():
 
         if not user_id:
             raise BadRequest("User ID is required")
+        data = request.get_json()
+        cart_id = data.get("cart_id")
+        if not cart_id:
+            raise BadRequest("Cart ID is required")
+        order_id = order_service.place_order(user_id=user_id, cart_id=cart_id)
 
-        order_id = order_service.place_order(user_id=user_id)
         return (
             jsonify({"message": "Order placed successfully", "order_id": order_id}),
             201,
         )
 
     except ValueError as e:
+        print(str(e))
         return jsonify({"error": str(e)}), 400
     except BadRequest as e:
         return jsonify({"error": str(e.description)}), 400

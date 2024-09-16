@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import pytest
 from src.core.application.password_service import PasswordService
-from src.core.domain.models import db, app
+from src.core.domain.models import db, app, User
+from src.adapters.user_adapter import UserAdapter
 
 
 @pytest.fixture
@@ -33,3 +34,23 @@ def password_service():
     :return: PasswordService instance.
     """
     return PasswordService()
+
+
+@pytest.fixture
+def create_admin_user(test_client, password_service):
+    """
+    Fixture to create an admin user for testing purposes.
+    This is useful for setting up an initial state where an admin user exists
+    in the database.
+
+    :return: None
+    """
+    with app.app_context():
+        # Directly add admin user to the database
+        admin_user = User(
+            user_name="admin",
+            password=password_service.hash_password("adminpassword"),
+            role="admin",
+        )
+        db.session.add(admin_user)
+        db.session.commit()

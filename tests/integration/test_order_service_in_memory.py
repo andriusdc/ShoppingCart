@@ -56,7 +56,7 @@ def test_place_order_success(order_service, setup_data, test_client):
     user, product, cart = setup_data
 
     # Place the order
-    order_id = order_service.place_order(user_id=user.user_id)
+    order_id = order_service.place_order(user_id=user.user_id, cart_id=cart.cart_id)
 
     # Verify that the order was created
 
@@ -84,7 +84,7 @@ def test_place_order_empty_cart(order_service, setup_data, test_client):
     db.session.commit()
     # Try to place an order with an empty cart
     with pytest.raises(Exception, match="Cart is empty"):
-        order_service.place_order(user_id=user.user_id)
+        order_service.place_order(user_id=user.user_id, cart_id=cart.cart_id)
 
     # Verify no order was created
     orders = db.session.query(Order).filter_by(user_id=user.user_id).all()
@@ -95,4 +95,4 @@ def test_place_order_empty_cart(order_service, setup_data, test_client):
 def test_place_order_nonexistent_user(order_service, test_client):
     # Try to place an order with a non-existent user
     with pytest.raises(Exception, match="User with ID not found"):
-        order_service.place_order(user_id=9999)
+        order_service.place_order(user_id=9999, cart_id=1)

@@ -19,12 +19,12 @@ class OrderService:
         self.order_adapter = order_adapter
         self.order_item_adapter = order_item_adapter
 
-    def place_order(self, user_id):
+    def place_order(self, user_id, cart_id):
         user = self.user_adapter.get_user(user_id)
         if not user:
             raise ValueError("User with ID not found")
 
-        cart = self.cart_adapter.get_cart(user_id)
+        cart = self.cart_adapter.get_cart(cart_id)
         if not cart:
             raise ValueError("No cart found for the user")
 
