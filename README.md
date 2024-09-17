@@ -31,7 +31,8 @@ This repository contains the structure for a Flask app that implements the basic
 
 User Journey
 
-![image](https://github.com/user-attachments/assets/c0bf789f-2bff-4ae0-8b9c-5ea2310b33d6)
+![image](https://github.com/user-attachments/assets/ac29a2a9-3392-492e-9a9e-db40b402d9e0)
+
 
 
 Project tree:
