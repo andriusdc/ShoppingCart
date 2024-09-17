@@ -62,13 +62,18 @@ class UserAdapter(UserPort):
             db.session.rollback()
             raise Exception(f"Failed to update password: {e}")
 
-    def login_account(self, user: User) -> bool:
+    def login_account(self, user_name: str, password: str) -> Optional[User]:
         """
         Validate user login credentials by checking the hashed password.
 
-        :return: True if the login credentials are correct, False otherwise.
+        :return: User object if the login credentials are correct
         """
-        stored_user = User.query.filter_by(user_name=user.user_name).first()
+
+        stored_user = db.session.query(User).filter_by(user_name=user_name).first()
         if not stored_user:
-            return False
-        return self.password_service.check_password(stored_user.password, user.password)
+            raise Exception(f"Invalid username or password")
+        else:
+            if self.password_service.check_password(stored_user.password, password):
+                return stored_user
+            else:
+                raise Exception(f"Invalid username or password")
