@@ -32,60 +32,60 @@ This repository contains the structure for a Flask app that implements the basic
 
 Project tree:
 
-├── README.md
-├── instance
-│   └── database.db
-├── migrations
-│   ├── README
-│   ├── alembic.ini
-│   ├── env.py
-│   ├── script.py.mako
-│   └── versions
-│       └── 1df5a3e3b367_initial_migration.py
-├── requirements.txt
-├── setup.py
-├── src
-│   ├── adapters
-│   │   ├── __init__.py
-│   │   ├── cart_adapter.py
-│   │   ├── cart_item_adapter.py
-│   │   ├── order_adapter.py
-│   │   ├── order_item_adapter.py
-│   │   ├── product_adapter.py
-│   │   └── user_adapter.py
-│   ├── core
-│   │   ├── application
-│   │   │   ├── __init__.py
-│   │   │   ├── order_service.py
-│   │   │   ├── password_service.py
-│   │   │   └── routes.py
-│   │   ├── domain
-│   │   │   ├── __init__.py
-│   │   │   └── models.py
-│   │   └── ports
-│   │ │       ├── __init__.py
-│   │ │    ├── cart_item_port.py
-│   │ │       ├── cart_port.py
-│   │ │       ├── order_item_port.py
-│   │ │       ├── order_port.py
-│   │ │       ├── product_port.py
-│   │ │       └── user_port.py
-│   ├── initialize_db.py
-│   └── main.py
-├── tests
-│   ├── integration
-│   │   ├── conftest.py
-│   │   ├── test_cart_adapter_in_memory.py
-│   │   ├── test_cart_item_adapter_in_memory.py
-│   │   ├── test_order_adapter_in_memory.py
-│   │   ├── test_order_item_adapter_in_memory.py
-│   │   ├── test_order_service_in_memory.py
-│   │   ├── test_product_adapter_in_memory.py
-│   │   ├── test_routes.py
-│   │   └── test_user_adapter_in_memory.py
-│   └── unit
-│       ├── test_core_models.py
-│       └── test_password_service.py
+    ├── README.md
+    ├── instance
+    │   └── database.db
+    ├── migrations
+    │   ├── README
+    │   ├── alembic.ini
+    │   ├── env.py
+    │   ├── script.py.mako
+    │   └── versions
+    │       └── 1df5a3e3b367_initial_migration.py
+    ├── requirements.txt
+    ├── setup.py
+    ├── src
+    │   ├── adapters
+    │   │   ├── __init__.py
+    │   │   ├── cart_adapter.py
+    │   │   ├── cart_item_adapter.py
+    │   │   ├── order_adapter.py
+    │   │   ├── order_item_adapter.py
+    │   │   ├── product_adapter.py
+    │   │   └── user_adapter.py
+    │   ├── core
+    │   │   ├── application
+    │   │   │   ├── __init__.py
+    │   │   │   ├── order_service.py
+    │   │   │   ├── password_service.py
+    │   │   │   └── routes.py
+    │   │   ├── domain
+    │   │   │   ├── __init__.py
+    │   │   │   └── models.py
+    │   │   └── ports
+    │   │ │       ├── __init__.py
+    │   │ │    ├── cart_item_port.py
+    │   │ │       ├── cart_port.py
+    │   │ │       ├── order_item_port.py
+    │   │ │       ├── order_port.py
+    │   │ │       ├── product_port.py
+    │   │ │       └── user_port.py
+    │   ├── initialize_db.py
+    │   └── main.py
+    ├── tests
+    │   ├── integration
+    │   │   ├── conftest.py
+    │   │   ├── test_cart_adapter_in_memory.py
+    │   │   ├── test_cart_item_adapter_in_memory.py
+    │   │   ├── test_order_adapter_in_memory.py
+    │   │   ├── test_order_item_adapter_in_memory.py
+    │   │   ├── test_order_service_in_memory.py
+    │   │   ├── test_product_adapter_in_memory.py
+    │   │   ├── test_routes.py
+    │   │   └── test_user_adapter_in_memory.py
+    │   └── unit
+    │       ├── test_core_models.py
+    │       └── test_password_service.py
 
 # Use case overview
 A shopping cart is a collection of products selected from a user from a product catalog. This user can view that catalog and choose which products they want to buy. Additionally, the user should be able to edit his cart by removing already added products. After selecting the products, the user can place an order and empy the cart for future purchases.
