@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 import pytest
-from flask_sqlalchemy import SQLAlchemy
-from src.core.application.routes import app, db
 from src.core.application.order_service import OrderService
 
 

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from flask import Flask
 import os
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -7,14 +6,12 @@ from datetime import datetime
 from sqlalchemy.orm import validates
 
 
-app = Flask(__name__)
+# app = Flask(__name__)
 
 
-#
-
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
-db = SQLAlchemy(app)
-migrate = Migrate(app, db)
+# app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
+db = SQLAlchemy()
+# migrate = Migrate(app, db)
 
 
 class User(db.Model):

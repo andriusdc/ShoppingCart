@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from flask import Flask, request, jsonify
+from flask import request, jsonify, Blueprint
 from flask_jwt_extended import (
     JWTManager,
     jwt_required,
@@ -17,8 +17,6 @@ from src.adapters.order_item_adapter import OrderItemAdapter
 from src.core.application.password_service import PasswordService
 from src.core.application.order_service import OrderService
 from src.core.domain.models import (
-    app,
-    db,
     User,
     Product,
     Cart,
@@ -32,8 +30,7 @@ import os
 from datetime import datetime, timedelta
 
 
-app.config["JWT_SECRET_KEY"] = os.getenv("SECRET_KEY")
-jwt = JWTManager(app)
+main = Blueprint("main", __name__)
 
 
 def role_required(required_role):
@@ -131,7 +128,7 @@ order_service = OrderService(
 # User Endpoints
 
 
-@app.route("/login", methods=["POST"])
+@main.route("/login", methods=["POST"])
 def login():
     try:
         data = request.get_json()
@@ -157,7 +154,7 @@ def login():
     return jsonify({"token": token}), 200
 
 
-@app.route("/users", methods=["POST"])
+@main.route("/users", methods=["POST"])
 def add_user():
     try:
         data = request.get_json()
@@ -170,7 +167,7 @@ def add_user():
         return jsonify({"error": str(e.description)}), 400
 
 
-@app.route("/users/<int:user_id>", methods=["GET"])
+@main.route("/users/<int:user_id>", methods=["GET"])
 @jwt_required()
 def get_user(user_id):
     try:
@@ -190,7 +187,7 @@ def get_user(user_id):
 
 
 # Product Endpoints
-@app.route("/products", methods=["POST"])
+@main.route("/products", methods=["POST"])
 @role_required("admin")
 def create_product():
     try:
@@ -204,7 +201,7 @@ def create_product():
         return jsonify({"error": str(e.description)}), 400
 
 
-@app.route("/products/<int:product_id>", methods=["GET"])
+@main.route("/products/<int:product_id>", methods=["GET"])
 def get_product(product_id):
     try:
         product = product_adapter.get_product(product_id=product_id)
@@ -215,7 +212,7 @@ def get_product(product_id):
         return jsonify({"error": str(e.description)}), 400
 
 
-@app.route("/products/<int:product_id>", methods=["PUT"])
+@main.route("/products/<int:product_id>", methods=["PUT"])
 @role_required("admin")
 def update_product(product_id):
     try:
@@ -240,7 +237,7 @@ def update_product(product_id):
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/products/<int:product_id>", methods=["DELETE"])
+@main.route("/products/<int:product_id>", methods=["DELETE"])
 @role_required("admin")
 def delete_product(product_id):
     try:
@@ -260,7 +257,7 @@ def delete_product(product_id):
 
 
 # Cart Endpoints
-@app.route("/carts", methods=["POST"])
+@main.route("/carts", methods=["POST"])
 @jwt_required()
 def add_cart():
     try:
@@ -281,7 +278,7 @@ def add_cart():
         return jsonify({"error": str(e.description)}), 400
 
 
-@app.route("/carts/<int:cart_id>", methods=["GET"])
+@main.route("/carts/<int:cart_id>", methods=["GET"])
 @jwt_required()
 def get_cart(cart_id):
     try:
@@ -300,7 +297,7 @@ def get_cart(cart_id):
 
 
 # Cart Item Endpoints
-@app.route("/carts/<int:cart_id>/items", methods=["POST"])
+@main.route("/carts/<int:cart_id>/items", methods=["POST"])
 @jwt_required()
 def add_cart_item(cart_id):
     try:
@@ -319,7 +316,7 @@ def add_cart_item(cart_id):
         return jsonify({"error": str(e.description)}), 400
 
 
-@app.route("/carts/<int:cart_id>/items", methods=["GET"])
+@main.route("/carts/<int:cart_id>/items", methods=["GET"])
 @jwt_required()
 def list_cart_items(cart_id):
     try:
@@ -336,7 +333,7 @@ def list_cart_items(cart_id):
         return jsonify({"error": str(e.description)}), 400
 
 
-@app.route("/cart_items/<int:cart_item_id>", methods=["DELETE"])
+@main.route("/cart_items/<int:cart_item_id>", methods=["DELETE"])
 @jwt_required()
 def remove_cart_item(cart_item_id):
     try:
@@ -347,7 +344,7 @@ def remove_cart_item(cart_item_id):
 
 
 # Order Endpoints
-@app.route("/orders", methods=["POST"])
+@main.route("/orders", methods=["POST"])
 @jwt_required()
 def create_order():
     try:
@@ -370,7 +367,7 @@ def create_order():
         return jsonify({"error": str(e.description)}), 400
 
 
-@app.route("/orders/<int:order_id>", methods=["GET"])
+@main.route("/orders/<int:order_id>", methods=["GET"])
 @jwt_required()
 def get_order(order_id):
     try:
@@ -381,7 +378,7 @@ def get_order(order_id):
 
 
 # Order Item Endpoints
-@app.route("/orders/<int:order_id>/items", methods=["POST"])
+@main.route("/orders/<int:order_id>/items", methods=["POST"])
 @jwt_required()
 def add_order_item(order_id):
     try:
@@ -404,7 +401,7 @@ def add_order_item(order_id):
         return jsonify({"error": str(e.description)}), 400
 
 
-@app.route("/orders/<int:order_id>/items", methods=["GET"])
+@main.route("/orders/<int:order_id>/items", methods=["GET"])
 @jwt_required()
 def list_order_items(order_id):
     try:
@@ -419,7 +416,7 @@ def list_order_items(order_id):
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/orders/finish", methods=["POST"])
+@main.route("/orders/finish", methods=["POST"])
 @jwt_required()
 def place_order():
     try:
@@ -444,7 +441,3 @@ def place_order():
         return jsonify({"error": str(e)}), 400
     except BadRequest as e:
         return jsonify({"error": str(e.description)}), 400
-
-
-if __name__ == "__main__":
-    app.run(debug=True)

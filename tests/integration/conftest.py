@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 import pytest
 from src.core.application.password_service import PasswordService
-from src.core.domain.models import db, app, User
-from src.adapters.user_adapter import UserAdapter
+from src.main import add_admin_user, create_app, db
 
 
 @pytest.fixture
@@ -16,13 +15,19 @@ def test_client():
 
     :return: Flask test client.
     """
-    app.config["TESTING"] = True
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
+    test_config = {
+        "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
+        "TESTING": True,
+    }
+
+    app = create_app(test_config)
 
     with app.app_context():
+
         db.create_all()
-        yield app.test_client()
-        db.session.remove()
+        with app.test_client() as testing_client:
+            yield testing_client  # This is where the testing happens
+
         db.drop_all()
 
 
@@ -45,12 +50,6 @@ def create_admin_user(test_client, password_service):
 
     :return: None
     """
-    with app.app_context():
-        # Directly add admin user to the database
-        admin_user = User(
-            user_name="admin",
-            password=password_service.hash_password("adminpassword"),
-            role="admin",
-        )
-        db.session.add(admin_user)
-        db.session.commit()
+    with test_client.application.app_context():
+        admin_user = add_admin_user(password_service)
+        return admin_user
