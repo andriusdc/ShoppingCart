@@ -30,6 +30,7 @@ This repository contains the structure for a Flask app that implements the basic
 - Others: Configuration and database-related files.
 
 User Journey
+
 ![image](https://github.com/user-attachments/assets/786a25f5-468d-4096-9573-6d92cd0d9204)
 
 Project tree:
