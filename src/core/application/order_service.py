@@ -20,6 +20,19 @@ class OrderService:
         self.order_item_adapter = order_item_adapter
 
     def place_order(self, user_id, cart_id):
+        """
+        Place an order by moving items from the user's cart to an order.
+
+        This method retrieves the user and cart associated with the provided IDs,
+        then moves all items from the cart to a new order. The order and its items
+        are saved in the database, and the cart is emptied in the process.
+
+        :param user_id: ID of the user placing the order.
+        :param cart_id: ID of the user's cart containing the items to be ordered.
+        :return: The ID of the newly created order.
+        :raises ValueError: If the user is not found, the cart is empty, or the cart does not exist.
+        :raises Exception: If any operation fails during the process of creating the order.
+        """
         user = self.user_adapter.get_user(user_id)
         if not user:
             raise ValueError("User with ID not found")
