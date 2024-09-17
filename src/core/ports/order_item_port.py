@@ -47,10 +47,11 @@ class OrderItemPort(ABC):
         pass
 
     @abstractmethod
-    def list_order_items(self) -> List[OrderItem]:
+    def list_order_items(self, order_id: int) -> List[OrderItem]:
         """
-        List all order items.
+        List all order items in the database for a specific order_id.
 
+        :param order_id: ID of the order to list items from.
         :return: A list of all order items.
         """
         pass

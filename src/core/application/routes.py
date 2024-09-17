@@ -160,6 +160,8 @@ def add_user():
         data = request.get_json()
         user_name, password = validate_user_name_password(data)
         role = validate_role(data)
+        if role == "admin":
+            raise BadRequest("You are not permited to create admin role user")
         user = User(user_name=user_name, password=password, role=role)
         user_adapter.create_account(user)
         return jsonify({"message": "User added successfully"}), 201
